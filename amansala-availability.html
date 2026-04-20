@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amansala · Fechas Disponibles</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #f5f0e8;
+    --sand-dark: #ede5d5;
+    --teal: #2a6b6b;
+    --teal-light: #3d8f8f;
+    --teal-faint: #e8f2f2;
+    --clay: #c4714a;
+    --clay-light: #f0d5c8;
+    --ink: #1a2424;
+    --mist: #7a9090;
+    --white: #fdfcfa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--sand);
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 10% 90%, rgba(42,107,107,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 90% 10%, rgba(196,113,74,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative; z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .header-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--mist);
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 300;
+    color: var(--teal);
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .header h1 em {
+    font-style: italic;
+    font-weight: 400;
+  }
+  .header-sub {
+    font-size: 11px;
+    color: var(--mist);
+    letter-spacing: 0.05em;
+  }
+
+  .divider {
+    width: 40px; height: 1px;
+    background: var(--teal);
+    margin: 20px auto;
+    opacity: 0.4;
+  }
+
+  /* Config panel */
+  .config-panel {
+    background: var(--white);
+    border: 1px solid rgba(42,107,107,0.15);
+    border-radius: 4px;
+    padding: 32px;
+    margin-bottom: 32px;
+    box-shadow: 0 2px 20px rgba(26,36,36,0.04);
+  }
+
+  .config-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mist);
+    margin-bottom: 24px;
+  }
+
+  .fields-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 600px) {
+    .fields-row { grid-template-columns: 1fr; }
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field-group label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--mist);
+  }
+  .field-group input {
+    background: var(--sand);
+    border: 1px solid rgba(42,107,107,0.2);
+    border-radius: 3px;
+    padding: 10px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field-group input:focus {
+    border-color: var(--teal);
+  }
+  .field-group input::placeholder { color: var(--mist); opacity: 0.6; }
+
+  /* Token row */
+  .token-row {
+    margin-bottom: 20px;
+  }
+  .token-row .field-group input {
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Nights filter */
+  .nights-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+    align-items: center;
+  }
+  .nights-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--mist);
+    margin-right: 4px;
+  }
+  .night-btn {
+    background: transparent;
+    border: 1px solid rgba(42,107,107,0.25);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--mist);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .night-btn.active {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: white;
+  }
+  .night-btn:hover:not(.active) {
+    border-color: var(--teal);
+    color: var(--teal);
+  }
+
+  /* Search button */
+  .btn-search {
+    width: 100%;
+    background: var(--teal);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-search:hover { background: var(--teal-light); }
+  .btn-search:active { transform: scale(0.99); }
+  .btn-search:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Status */
+  .status {
+    text-align: center;
+    padding: 24px;
+    font-size: 11px;
+    color: var(--mist);
+    letter-spacing: 0.1em;
+    display: none;
+  }
+  .status.visible { display: block; }
+  .status .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid var(--teal-faint);
+    border-top-color: var(--teal);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Error */
+  .error-msg {
+    background: #fdf0ec;
+    border: 1px solid var(--clay-light);
+    border-radius: 3px;
+    padding: 14px 18px;
+    font-size: 12px;
+    color: var(--clay);
+    display: none;
+    margin-bottom: 16px;
+  }
+  .error-msg.visible { display: block; }
+
+  /* Results header */
+  .results-header {
+    display: none;
+    margin-bottom: 24px;
+  }
+  .results-header.visible { display: flex; align-items: baseline; gap: 16px; }
+  .results-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 300;
+    color: var(--teal);
+  }
+  .results-count {
+    font-size: 11px;
+    color: var(--mist);
+  }
+
+  /* Summary strip */
+  .summary-strip {
+    display: none;
+    gap: 2px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .summary-strip.visible { display: flex; }
+  .summary-chip {
+    flex: 1;
+    min-width: 80px;
+    background: var(--white);
+    border: 1px solid rgba(42,107,107,0.15);
+    border-radius: 3px;
+    padding: 12px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .summary-chip:hover, .summary-chip.active-filter {
+    background: var(--teal);
+    border-color: var(--teal);
+  }
+  .summary-chip:hover .chip-label,
+  .summary-chip.active-filter .chip-label,
+  .summary-chip:hover .chip-count,
+  .summary-chip.active-filter .chip-count { color: white; }
+  .chip-count {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 300;
+    color: var(--teal);
+    display: block;
+    line-height: 1;
+  }
+  .chip-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--mist);
+    display: block;
+    margin-top: 4px;
+  }
+
+  /* Slots grid */
+  .slots-grid {
+    display: none;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+  }
+  .slots-grid.visible { display: grid; }
+
+  .slot-card {
+    background: var(--white);
+    border: 1px solid rgba(42,107,107,0.12);
+    border-radius: 4px;
+    padding: 20px;
+    transition: all 0.15s;
+    animation: fadeUp 0.3s ease both;
+    cursor: default;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .slot-card:hover {
+    border-color: var(--teal);
+    box-shadow: 0 4px 16px rgba(42,107,107,0.1);
+    transform: translateY(-1px);
+  }
+
+  .slot-nights {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.4rem;
+    font-weight: 300;
+    color: var(--teal);
+    line-height: 1;
+  }
+  .slot-nights span {
+    font-size: 0.9rem;
+    color: var(--mist);
+    font-family: 'DM Mono', monospace;
+    font-weight: 300;
+    margin-left: 4px;
+  }
+
+  .slot-dates {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--ink);
+    margin: 8px 0 4px;
+    line-height: 1.3;
+  }
+  .slot-dow {
+    font-size: 10px;
+    color: var(--mist);
+    letter-spacing: 0.08em;
+  }
+
+  .slot-tag {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+  .tag-3 { background: #e8f5f0; color: #2a7a5a; }
+  .tag-4 { background: var(--teal-faint); color: var(--teal); }
+  .tag-5 { background: #e8effc; color: #3a5fa0; }
+  .tag-6 { background: #f0eafc; color: #6040a0; }
+  .tag-7 { background: #fef3e8; color: #a06020; }
+  .tag-8plus { background: var(--clay-light); color: var(--clay); }
+
+  /* Copy button */
+  .slot-copy {
+    background: none;
+    border: none;
+    color: var(--mist);
+    font-size: 10px;
+    cursor: pointer;
+    padding: 0;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.08em;
+    margin-top: 10px;
+    display: block;
+    transition: color 0.15s;
+  }
+  .slot-copy:hover { color: var(--teal); }
+
+  /* Programs reference */
+  .programs-section {
+    margin-top: 48px;
+    display: none;
+  }
+  .programs-section.visible { display: block; }
+  .programs-toggle {
+    background: none;
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--mist);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    transition: color 0.15s;
+  }
+  .programs-toggle:hover { color: var(--teal); }
+  .programs-toggle .arrow { transition: transform 0.2s; }
+  .programs-toggle.open .arrow { transform: rotate(90deg); }
+
+  .programs-list {
+    display: none;
+    background: var(--white);
+    border: 1px solid rgba(42,107,107,0.12);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .programs-list.open { display: block; }
+
+  .prog-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(42,107,107,0.06);
+    font-size: 11px;
+    align-items: center;
+  }
+  .prog-row:last-child { border-bottom: none; }
+  .prog-row:nth-child(even) { background: var(--sand); }
+  .prog-name { color: var(--ink); font-size: 12px; }
+  .prog-range { color: var(--mist); font-family: 'DM Mono', monospace; font-size: 10px; white-space: nowrap; }
+  .prog-nights-badge {
+    background: var(--teal-faint);
+    color: var(--teal);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    display: none;
+  }
+  .empty-state.visible { display: block; }
+  .empty-state p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    font-style: italic;
+    color: var(--mist);
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 64px;
+    font-size: 10px;
+    color: var(--mist);
+    letter-spacing: 0.1em;
+    opacity: 0.6;
+  }
+
+  /* Tooltip for copy */
+  .copied-tip {
+    position: fixed;
+    bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--teal);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 100;
+  }
+  .copied-tip.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header class="header">
+    <p class="header-eyebrow">Amansala · Tulum</p>
+    <h1>Fechas <em>Disponibles</em></h1>
+    <div class="divider"></div>
+    <p class="header-sub">Consulta automática de huecos en el Venue Calendar</p>
+  </header>
+
+  <div class="config-panel">
+    <p class="config-title">Configuración</p>
+
+    <div class="token-row" style="display:none">
+      <div class="field-group">
+        <label>API Token · Retreat Guru</label>
+        <input type="password" id="apiToken" placeholder="Pega tu token aquí (Reg Settings → API)" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="fields-row">
+      <div class="field-group">
+        <label>Desde</label>
+        <input type="date" id="dateFrom">
+      </div>
+      <div class="field-group">
+        <label>Hasta</label>
+        <input type="date" id="dateTo">
+      </div>
+      <div class="field-group">
+        <label>Mínimo de noches</label>
+        <input type="number" id="minNights" value="1" min="1" max="30">
+      </div>
+    </div>
+
+    <div class="nights-filter">
+      <span class="nights-label">Ver rangos:</span>
+      <button class="night-btn active" data-n="3">3 noches</button>
+      <button class="night-btn active" data-n="4">4 noches</button>
+      <button class="night-btn active" data-n="5">5 noches</button>
+      <button class="night-btn active" data-n="6">6 noches</button>
+      <button class="night-btn active" data-n="7">7 noches</button>
+      <button class="night-btn active" data-n="8">8+ noches</button>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <button class="btn-search" id="btnSearch" onclick="runSearch()">
+      Buscar fechas disponibles
+    </button>
+  </div>
+
+  <div class="status" id="status">
+    <span class="spinner"></span><span id="statusText">Consultando Retreat Guru…</span>
+  </div>
+
+  <!-- Summary chips -->
+  <div class="summary-strip" id="summaryStrip">
+    <!-- filled by JS -->
+  </div>
+
+  <!-- Results header -->
+  <div class="results-header" id="resultsHeader">
+    <span class="results-title">Huecos encontrados</span>
+    <span class="results-count" id="resultsCount"></span>
+  </div>
+
+  <!-- Slots grid -->
+  <div class="slots-grid" id="slotsGrid"></div>
+
+  <!-- Empty state -->
+  <div class="empty-state" id="emptyState">
+    <p>No se encontraron huecos con los filtros seleccionados.</p>
+  </div>
+
+  <!-- Programs reference -->
+  <div class="programs-section" id="programsSection">
+    <button class="programs-toggle" id="programsToggle" onclick="togglePrograms()">
+      <span class="arrow">▶</span>
+      <span>Ver programas consultados</span>
+    </button>
+    <div class="programs-list" id="programsList"></div>
+  </div>
+
+  <div class="footer">amansala.com · retreat.guru API v1</div>
+</div>
+
+<div class="copied-tip" id="copiedTip">¡Copiado!</div>
+
+<script>
+const DOMAIN = 'amansala.secure.retreat.guru';
+const SAVED_TOKEN = '687eadc2c7252989d8c4f148f24bfc7b';
+const DAYS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MONTHS_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+// Pre-fill token
+document.getElementById('apiToken').value = SAVED_TOKEN;
+
+// Default dates: today → today + 1 year
+const today = new Date();
+document.getElementById('dateFrom').value = fmtISO(today);
+const toDefault = new Date(today); toDefault.setFullYear(toDefault.getFullYear()+1);
+document.getElementById('dateTo').value = fmtISO(toDefault);
+
+// Night filter toggle
+document.querySelectorAll('.night-btn').forEach(btn => {
+  btn.addEventListener('click', () => btn.classList.toggle('active'));
+});
+
+function fmtISO(d) {
+  return d.toISOString().split('T')[0];
+}
+function parseISO(s) {
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function fmtReadable(d) {
+  return `${DAYS_ES[d.getDay()]} ${d.getDate()} ${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`;
+}
+function nightsLabel(n) {
+  if (n >= 8) return '8+ noches';
+  return n + (n === 1 ? ' noche' : ' noches');
+}
+function tagClass(n) {
+  if (n === 3) return 'tag-3';
+  if (n === 4) return 'tag-4';
+  if (n === 5) return 'tag-5';
+  if (n === 6) return 'tag-6';
+  if (n === 7) return 'tag-7';
+  return 'tag-8plus';
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+function hideError() {
+  document.getElementById('errorMsg').classList.remove('visible');
+}
+function setStatus(msg, show) {
+  const el = document.getElementById('status');
+  document.getElementById('statusText').textContent = msg;
+  el.classList.toggle('visible', show);
+}
+
+async function fetchAllPrograms(token) {
+  let all = [], page = 1;
+  while(true) {
+    const url = `https://${DOMAIN}/api/v1/programs?token=${encodeURIComponent(token)}&limit=100&page=${page}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(`API error ${res.status}: ${txt}`);
+    }
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) break;
+    all = all.concat(data);
+    if (data.length < 100) break;
+    page++;
+  }
+  return all;
+}
+
+function findGaps(programs, fromDate, toDate, minNights) {
+  // Collect all occupied ranges as [start, end] Date pairs
+  // start_date = first day, end_date = last day
+  // Treat as occupied: from start_date through end_date inclusive
+  const ranges = programs
+    .filter(p => p.start_date && p.end_date)
+    .map(p => ({
+      start: parseISO(p.start_date),
+      end: parseISO(p.end_date),
+      name: p.name
+    }))
+    .filter(r => r.end >= fromDate && r.start <= toDate)
+    .sort((a,b) => a.start - b.start);
+
+  const gaps = [];
+  let cursor = new Date(fromDate);
+
+  for (const r of ranges) {
+    // gap between cursor and r.start
+    if (r.start > cursor) {
+      const gapStart = new Date(cursor);
+      const gapEnd = new Date(r.start); // last free day = day before r.start
+      gapEnd.setDate(gapEnd.getDate() - 1);
+      const nights = Math.round((gapEnd - gapStart) / 86400000) + 1;
+      // nights here = number of nights available in gap
+      // A guest checking in on gapStart and checking out on gapEnd occupies nights nights
+      if (nights >= minNights) {
+        gaps.push({ start: gapStart, end: gapEnd, nights });
+      }
+    }
+    // Advance cursor past this program
+    const next = new Date(r.end);
+    next.setDate(next.getDate() + 1);
+    if (next > cursor) cursor = next;
+  }
+
+  // Final gap: cursor → toDate
+  if (cursor <= toDate) {
+    const gapStart = new Date(cursor);
+    const nights = Math.round((toDate - gapStart) / 86400000) + 1;
+    if (nights >= minNights) {
+      gaps.push({ start: gapStart, end: new Date(toDate), nights });
+    }
+  }
+
+  return gaps;
+}
+
+function bucketNights(n) {
+  if (n >= 8) return '8+';
+  return String(n);
+}
+
+let allGaps = [];
+let currentFilter = null;
+
+function renderGaps(filter) {
+  currentFilter = filter;
+  const grid = document.getElementById('slotsGrid');
+  const empty = document.getElementById('emptyState');
+  const count = document.getElementById('resultsCount');
+
+  // Active night buttons
+  const activeNights = new Set(
+    [...document.querySelectorAll('.night-btn.active')].map(b => b.dataset.n)
+  );
+
+  let filtered = allGaps.filter(g => {
+    const bucket = g.nights >= 8 ? '8' : String(g.nights);
+    if (!activeNights.has(bucket)) return false;
+    if (filter && bucketNights(g.nights) !== filter) return false;
+    return true;
+  });
+
+  // Update chip active state
+  document.querySelectorAll('.summary-chip').forEach(c => {
+    c.classList.toggle('active-filter', filter && c.dataset.bucket === filter);
+  });
+
+  grid.innerHTML = '';
+
+  if (filtered.length === 0) {
+    grid.classList.remove('visible');
+    empty.classList.add('visible');
+    count.textContent = '';
+    return;
+  }
+
+  empty.classList.remove('visible');
+  grid.classList.add('visible');
+  count.textContent = `${filtered.length} resultado${filtered.length !== 1 ? 's' : ''}`;
+
+  filtered.forEach((g, i) => {
+    const card = document.createElement('div');
+    card.className = 'slot-card';
+    card.style.animationDelay = `${Math.min(i, 15) * 30}ms`;
+
+    const checkIn = fmtReadable(g.start);
+    const checkOut = fmtReadable(g.end);
+    const copyText = `Check-in: ${checkIn}  |  Check-out: ${checkOut}  |  ${g.nights} noches`;
+
+    card.innerHTML = `
+      <div class="slot-nights">${g.nights}<span>noches</span></div>
+      <div class="slot-dates">${g.start.getDate()} ${MONTHS_ES[g.start.getMonth()]} — ${g.end.getDate()} ${MONTHS_ES[g.end.getMonth()]} ${g.end.getFullYear()}</div>
+      <div class="slot-dow">${DAYS_ES[g.start.getDay()]} → ${DAYS_ES[g.end.getDay()]}</div>
+      <span class="slot-tag ${tagClass(g.nights)}">${nightsLabel(g.nights)}</span>
+      <button class="slot-copy" onclick="copySlot(this, '${copyText.replace(/'/g,"\\'")}')">copiar fechas</button>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function buildSummary(gaps) {
+  const strip = document.getElementById('summaryStrip');
+  strip.innerHTML = '';
+
+  const buckets = {'3':0,'4':0,'5':0,'6':0,'7':0,'8+':0};
+  gaps.forEach(g => {
+    const k = g.nights >= 8 ? '8+' : String(g.nights);
+    if (k in buckets) buckets[k]++;
+  });
+
+  const labels = {'3':'3 noches','4':'4 noches','5':'5 noches','6':'6 noches','7':'7 noches','8+':'8+ noches'};
+
+  Object.entries(buckets).forEach(([k, v]) => {
+    const chip = document.createElement('div');
+    chip.className = 'summary-chip';
+    chip.dataset.bucket = k === '8+' ? '8+' : k;
+    chip.innerHTML = `<span class="chip-count">${v}</span><span class="chip-label">${labels[k]}</span>`;
+    chip.addEventListener('click', () => {
+      const active = currentFilter === chip.dataset.bucket;
+      renderGaps(active ? null : chip.dataset.bucket);
+    });
+    strip.appendChild(chip);
+  });
+
+  strip.classList.add('visible');
+}
+
+async function runSearch() {
+  hideError();
+  const token = document.getElementById('apiToken').value.trim();
+  const from  = document.getElementById('dateFrom').value;
+  const to    = document.getElementById('dateTo').value;
+  const minN  = parseInt(document.getElementById('minNights').value) || 1;
+
+  if (!token) { showError('Ingresa tu API token de Retreat Guru.'); return; }
+  if (!from || !to) { showError('Selecciona el rango de fechas.'); return; }
+  if (from >= to) { showError('La fecha inicial debe ser anterior a la final.'); return; }
+
+  const btn = document.getElementById('btnSearch');
+  btn.disabled = true;
+
+  // Hide previous results
+  document.getElementById('resultsHeader').classList.remove('visible');
+  document.getElementById('summaryStrip').classList.remove('visible');
+  document.getElementById('slotsGrid').classList.remove('visible');
+  document.getElementById('emptyState').classList.remove('visible');
+  document.getElementById('programsSection').classList.remove('visible');
+
+  setStatus('Consultando Retreat Guru…', true);
+
+  try {
+    const programs = await fetchAllPrograms(token);
+    setStatus(`Analizando ${programs.length} programas…`, true);
+
+    const fromDate = parseISO(from);
+    const toDate   = parseISO(to);
+
+    allGaps = findGaps(programs, fromDate, toDate, minN);
+    allGaps.sort((a,b) => a.start - b.start);
+
+    setStatus('', false);
+
+    buildSummary(allGaps);
+
+    document.getElementById('resultsHeader').classList.add('visible');
+    renderGaps(null);
+
+    // Programs list
+    renderProgramsList(programs, fromDate, toDate);
+    document.getElementById('programsSection').classList.add('visible');
+
+  } catch(e) {
+    setStatus('', false);
+    showError('Error al consultar la API: ' + e.message);
+  }
+
+  btn.disabled = false;
+}
+
+function renderProgramsList(programs, fromDate, toDate) {
+  const list = document.getElementById('programsList');
+  list.innerHTML = '';
+
+  const filtered = programs
+    .filter(p => p.start_date && p.end_date)
+    .filter(p => parseISO(p.end_date) >= fromDate && parseISO(p.start_date) <= toDate)
+    .sort((a,b) => a.start_date.localeCompare(b.start_date));
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="prog-row"><span style="color:var(--mist);font-size:11px">Sin programas en este período</span></div>';
+    return;
+  }
+
+  filtered.forEach(p => {
+    const nights = Math.round((parseISO(p.end_date) - parseISO(p.start_date)) / 86400000);
+    const row = document.createElement('div');
+    row.className = 'prog-row';
+    row.innerHTML = `
+      <span class="prog-name">${p.name || '—'}</span>
+      <span class="prog-range">${p.start_date} → ${p.end_date}</span>
+      <span class="prog-nights-badge">${nights}n</span>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function togglePrograms() {
+  const toggle = document.getElementById('programsToggle');
+  const list   = document.getElementById('programsList');
+  toggle.classList.toggle('open');
+  list.classList.toggle('open');
+}
+
+function copySlot(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const tip = document.getElementById('copiedTip');
+    tip.classList.add('show');
+    setTimeout(() => tip.classList.remove('show'), 1800);
+  });
+}
+
+// Allow Enter key in token field
+document.getElementById('apiToken').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runSearch();
+});
+</script>
+</body>
+</html>
