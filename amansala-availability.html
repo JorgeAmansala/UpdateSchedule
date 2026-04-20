@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amansala · Fechas Disponibles</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #f5f0e8;
+    --teal: #2a6b6b;
+    --teal-light: #3d8f8f;
+    --teal-faint: #e8f2f2;
+    --clay: #c4714a;
+    --clay-light: #f0d5c8;
+    --ink: #1a2424;
+    --mist: #7a9090;
+    --white: #fdfcfa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--sand); color: var(--ink); font-family: 'DM Mono', monospace; min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 10% 90%, rgba(42,107,107,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 90% 10%, rgba(196,113,74,0.06) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  .container { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  .header { text-align: center; margin-bottom: 40px; }
+  .header-eyebrow { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--mist); margin-bottom: 10px; }
+  .header h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem,5vw,3rem); font-weight: 300; color: var(--teal); }
+  .header h1 em { font-style: italic; }
+  .divider { width: 40px; height: 1px; background: var(--teal); margin: 16px auto; opacity: 0.4; }
+  .header-sub { font-size: 11px; color: var(--mist); }
+
+  .config-panel { background: var(--white); border: 1px solid rgba(42,107,107,0.15); border-radius: 4px; padding: 28px 32px; margin-bottom: 28px; box-shadow: 0 2px 20px rgba(26,36,36,0.04); }
+  .config-title { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mist); margin-bottom: 20px; }
+  .fields-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  @media(max-width:600px){ .fields-row { grid-template-columns: 1fr; } }
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
+  .field-group label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mist); }
+  .field-group input, .field-group select { background: var(--sand); border: 1px solid rgba(42,107,107,0.2); border-radius: 3px; padding: 10px 12px; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink); outline: none; transition: border-color 0.2s; }
+  .field-group input:focus, .field-group select:focus { border-color: var(--teal); }
+
+  /* Venue filter chips */
+  .venue-filter { margin-bottom: 20px; }
+  .venue-filter-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mist); margin-bottom: 8px; display: block; }
+  .venue-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .venue-chip { background: transparent; border: 1px solid rgba(42,107,107,0.25); border-radius: 20px; padding: 4px 12px; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--mist); cursor: pointer; transition: all 0.15s; }
+  .venue-chip.active { border-color: var(--teal); color: var(--teal); background: var(--teal-faint); }
+  .venue-chip:hover:not(.active) { border-color: var(--teal); color: var(--teal); }
+
+  .nights-filter { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; align-items: center; }
+  .nights-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mist); margin-right: 4px; }
+  .night-btn { background: transparent; border: 1px solid rgba(42,107,107,0.25); border-radius: 20px; padding: 5px 14px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--mist); cursor: pointer; transition: all 0.15s; }
+  .night-btn.active { background: var(--teal); border-color: var(--teal); color: white; }
+  .night-btn:hover:not(.active) { border-color: var(--teal); color: var(--teal); }
+
+  .error-msg { background: #fdf0ec; border: 1px solid var(--clay-light); border-radius: 3px; padding: 12px 16px; font-size: 12px; color: var(--clay); display: none; margin-bottom: 16px; }
+  .error-msg.visible { display: block; }
+  .btn-search { width: 100%; background: var(--teal); color: white; border: none; border-radius: 3px; padding: 14px; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
+  .btn-search:hover { background: var(--teal-light); }
+  .btn-search:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .status { text-align: center; padding: 24px; font-size: 11px; color: var(--mist); letter-spacing: 0.1em; display: none; }
+  .status.visible { display: block; }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--teal-faint); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 10px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Venue tabs */
+  .venue-tabs { display: none; flex-wrap: wrap; gap: 4px; margin-bottom: 24px; }
+  .venue-tabs.visible { display: flex; }
+  .venue-tab { background: var(--white); border: 1px solid rgba(42,107,107,0.15); border-radius: 3px; padding: 8px 16px; font-size: 11px; cursor: pointer; transition: all 0.15s; color: var(--mist); }
+  .venue-tab.active { background: var(--teal); border-color: var(--teal); color: white; }
+  .venue-tab:hover:not(.active) { border-color: var(--teal); color: var(--teal); }
+  .venue-tab .tab-count { font-size: 9px; opacity: 0.7; margin-left: 4px; }
+
+  /* Summary strip */
+  .summary-strip { display: none; gap: 2px; margin-bottom: 24px; }
+  .summary-strip.visible { display: flex; }
+  .summary-chip { flex: 1; background: var(--white); border: 1px solid rgba(42,107,107,0.15); border-radius: 3px; padding: 10px 14px; text-align: center; }
+  .chip-count { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 300; color: var(--teal); display: block; line-height: 1; }
+  .chip-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mist); display: block; margin-top: 3px; }
+
+  /* Month sections */
+  .month-section { margin-bottom: 32px; animation: fadeUp 0.3s ease both; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .month-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(42,107,107,0.12); }
+  .month-name { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 300; color: var(--teal); }
+  .month-count { font-size: 10px; color: var(--mist); }
+
+  .night-group { margin-bottom: 14px; }
+  .night-group-header { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mist); margin-bottom: 8px; }
+  .windows-list { display: flex; flex-wrap: wrap; gap: 7px; }
+
+  .window-chip { background: var(--white); border: 1px solid rgba(42,107,107,0.15); border-radius: 3px; padding: 8px 13px; cursor: pointer; transition: all 0.12s; display: flex; flex-direction: column; gap: 2px; }
+  .window-chip:hover { border-color: var(--teal); background: var(--teal-faint); transform: translateY(-1px); }
+  .window-dates { font-family: 'Cormorant Garamond', serif; font-size: 0.95rem; font-style: italic; color: var(--ink); }
+  .window-dow { font-size: 9px; color: var(--mist); }
+  .wc-3 { border-left: 3px solid #2a7a5a; }
+  .wc-4 { border-left: 3px solid var(--teal); }
+  .wc-5 { border-left: 3px solid #3a5fa0; }
+  .wc-6 { border-left: 3px solid #6040a0; }
+  .wc-7 { border-left: 3px solid #a06020; }
+
+  /* Occupied blocks reference */
+  .occupied-section { margin-top: 40px; display: none; }
+  .occupied-section.visible { display: block; }
+  .section-toggle { background: none; border: none; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mist); cursor: pointer; padding: 0; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .section-toggle .arrow { transition: transform 0.2s; display: inline-block; }
+  .section-toggle.open .arrow { transform: rotate(90deg); }
+  .section-content { display: none; background: var(--white); border: 1px solid rgba(42,107,107,0.12); border-radius: 4px; overflow: hidden; }
+  .section-content.open { display: block; }
+  .occ-row { display: grid; grid-template-columns: 140px 1fr auto; gap: 12px; padding: 9px 16px; border-bottom: 1px solid rgba(42,107,107,0.06); font-size: 11px; align-items: center; }
+  .occ-row:last-child { border-bottom: none; }
+  .occ-row:nth-child(even) { background: var(--sand); }
+  .occ-venue { font-size: 10px; letter-spacing: 0.08em; color: var(--teal); text-transform: uppercase; }
+  .occ-name { color: var(--ink); }
+  .occ-range { color: var(--mist); font-size: 10px; white-space: nowrap; }
+
+  .empty-state { text-align: center; padding: 48px; display: none; }
+  .empty-state.visible { display: block; }
+  .empty-state p { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-style: italic; color: var(--mist); }
+
+  .footer { text-align: center; margin-top: 60px; font-size: 10px; color: var(--mist); opacity: 0.5; }
+  .copied-tip { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--teal); color: white; padding: 8px 20px; border-radius: 20px; font-size: 11px; pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 100; }
+  .copied-tip.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <p class="header-eyebrow">Amansala · Tulum</p>
+    <h1>Fechas <em>Disponibles</em></h1>
+    <div class="divider"></div>
+    <p class="header-sub">Ventanas de estadía por mes · Venue Calendar</p>
+  </header>
+
+  <div class="config-panel">
+    <p class="config-title">Configuración</p>
+    <div style="display:none"><input type="text" id="apiToken"></div>
+
+    <div class="fields-row">
+      <div class="field-group">
+        <label>Desde</label>
+        <input type="date" id="dateFrom">
+      </div>
+      <div class="field-group">
+        <label>Hasta</label>
+        <input type="date" id="dateTo">
+      </div>
+      <div class="field-group">
+        <label>Mín. noches</label>
+        <input type="number" id="minNights" value="3" min="1" max="30">
+      </div>
+    </div>
+
+    <div class="venue-filter">
+      <span class="venue-filter-label">Venues a consultar:</span>
+      <div class="venue-chips" id="venueChips"></div>
+    </div>
+
+    <div class="nights-filter">
+      <span class="nights-label">Mostrar:</span>
+      <button class="night-btn active" data-n="3">3 noches</button>
+      <button class="night-btn active" data-n="4">4 noches</button>
+      <button class="night-btn active" data-n="5">5 noches</button>
+      <button class="night-btn active" data-n="6">6 noches</button>
+      <button class="night-btn active" data-n="7">7 noches</button>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="btn-search" id="btnSearch" onclick="runSearch()">Buscar fechas disponibles</button>
+  </div>
+
+  <div class="status" id="status">
+    <span class="spinner"></span><span id="statusText">Consultando…</span>
+  </div>
+
+  <!-- Venue tabs -->
+  <div class="venue-tabs" id="venueTabs"></div>
+
+  <!-- Summary strip -->
+  <div class="summary-strip" id="summaryStrip"></div>
+
+  <!-- Results -->
+  <div id="resultsArea"></div>
+  <div class="empty-state" id="emptyState"><p>No hay ventanas disponibles con los filtros seleccionados.</p></div>
+
+  <!-- Occupied blocks -->
+  <div class="occupied-section" id="occupiedSection">
+    <button class="section-toggle" id="occupiedToggle" onclick="toggleSection('occupied')">
+      <span class="arrow">▶</span><span>Ver bloques ocupados</span>
+    </button>
+    <div class="section-content" id="occupiedContent"></div>
+  </div>
+
+  <div class="footer">amansala.com · retreat.guru API v1 · venue_uses</div>
+</div>
+<div class="copied-tip" id="copiedTip">¡Copiado!</div>
+
+<script>
+const DOMAIN = 'amansala.secure.retreat.guru';
+const TOKEN  = '687eadc2c7252989d8c4f148f24bfc7b';
+
+const TARGET_VENUES = ['Casa Master','Casa Shanti','RETREAT 1','RETREAT 2','RETREAT 3','RETREAT 4','Amansala'];
+
+const DAYS   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MONTHS_S = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+// Init token + dates
+document.getElementById('apiToken').value = TOKEN;
+const today = new Date();
+document.getElementById('dateFrom').value = fmtISO(today);
+const toD = new Date(today); toD.setFullYear(toD.getFullYear()+1);
+document.getElementById('dateTo').value = fmtISO(toD);
+
+// Build venue chips
+const venueChipsEl = document.getElementById('venueChips');
+TARGET_VENUES.forEach(v => {
+  const chip = document.createElement('button');
+  chip.className = 'venue-chip active';
+  chip.dataset.venue = v;
+  chip.textContent = v;
+  chip.addEventListener('click', () => chip.classList.toggle('active'));
+  venueChipsEl.appendChild(chip);
+});
+
+// Night buttons
+document.querySelectorAll('.night-btn').forEach(b => b.addEventListener('click', () => b.classList.toggle('active')));
+
+// Helpers
+function fmtISO(d) { return d.toISOString().split('T')[0]; }
+function parseDate(s) {
+  // handles "2026-04-20T00:00:00Z" or "2026-04-20"
+  const str = s.includes('T') ? s.split('T')[0] : s;
+  const [y,m,d] = str.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function diffDays(a,b) { return Math.round((b-a)/86400000); }
+function fmtShort(d) { return `${d.getDate()} ${MONTHS_S[d.getMonth()]}`; }
+function addDays(d,n) { const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function showError(m) { const e=document.getElementById('errorMsg'); e.textContent=m; e.classList.add('visible'); }
+function hideError() { document.getElementById('errorMsg').classList.remove('visible'); }
+function setStatus(m,show) { document.getElementById('statusText').textContent=m; document.getElementById('status').classList.toggle('visible',show); }
+function showCopied() { const t=document.getElementById('copiedTip'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+
+// Fetch all venue_uses paginated
+async function fetchVenueUses(from, to) {
+  let all=[], page=1;
+  while(true) {
+    const url=`https://${DOMAIN}/api/v1/venue_uses?token=${encodeURIComponent(TOKEN)}&limit=100&page=${page}&min_date=${from}&max_date=${to}`;
+    const res=await fetch(url);
+    if(!res.ok) throw new Error(`API ${res.status}: ${await res.text()}`);
+    const data=await res.json();
+    if(!Array.isArray(data)||data.length===0) break;
+    all=all.concat(data);
+    if(data.length<100) break;
+    page++;
+  }
+  return all;
+}
+
+// Find gaps for a list of bookings (sorted)
+function findGaps(bookings, fromDate, toDate) {
+  const sorted = [...bookings].sort((a,b)=>a.start-b.start);
+  const gaps=[]; let cursor=new Date(fromDate);
+  for(const b of sorted) {
+    if(b.start > cursor) {
+      const gs=new Date(cursor);
+      const ge=new Date(b.start); ge.setDate(ge.getDate()-1);
+      const n=diffDays(gs,ge)+1;
+      if(n>=1) gaps.push({start:gs,end:ge,nights:n});
+    }
+    const next=new Date(b.end); next.setDate(next.getDate()+1);
+    if(next>cursor) cursor=next;
+  }
+  if(cursor<=toDate) {
+    const n=diffDays(cursor,toDate)+1;
+    if(n>=1) gaps.push({start:new Date(cursor),end:new Date(toDate),nights:n});
+  }
+  return gaps;
+}
+
+function windowsInGap(gap, n) {
+  const wins=[]; if(gap.nights<n) return wins;
+  let s=new Date(gap.start);
+  while(true) { const e=addDays(s,n-1); if(e>gap.end) break; wins.push({start:new Date(s),end:new Date(e),nights:n}); s=addDays(s,1); }
+  return wins;
+}
+
+function groupByMonth(windows) {
+  const map={};
+  for(const w of windows) {
+    const key=`${w.start.getFullYear()}-${String(w.start.getMonth()).padStart(2,'0')}`;
+    if(!map[key]) map[key]={year:w.start.getFullYear(),month:w.start.getMonth(),windows:[]};
+    map[key].windows.push(w);
+  }
+  return Object.values(map).sort((a,b)=>a.year-b.year||a.month-b.month);
+}
+
+// State
+let venueData = {}; // { venueName: { bookings, windows } }
+let activeVenueTab = null;
+
+async function runSearch() {
+  hideError();
+  const from = document.getElementById('dateFrom').value;
+  const to   = document.getElementById('dateTo').value;
+  const minN = parseInt(document.getElementById('minNights').value)||3;
+  const activeVenues = [...document.querySelectorAll('.venue-chip.active')].map(c=>c.dataset.venue);
+  const activeNights = [...document.querySelectorAll('.night-btn.active')].map(b=>parseInt(b.dataset.n)).filter(n=>n>=minN);
+
+  if(!from||!to){ showError('Selecciona fechas.'); return; }
+  if(activeVenues.length===0){ showError('Selecciona al menos un venue.'); return; }
+  if(activeNights.length===0){ showError('Selecciona al menos un rango de noches.'); return; }
+
+  const btn=document.getElementById('btnSearch'); btn.disabled=true;
+  document.getElementById('resultsArea').innerHTML='';
+  document.getElementById('emptyState').classList.remove('visible');
+  document.getElementById('summaryStrip').classList.remove('visible');
+  document.getElementById('venueTabs').classList.remove('visible');
+  document.getElementById('occupiedSection').classList.remove('visible');
+
+  setStatus('Consultando Venue Calendar…', true);
+
+  try {
+    const uses = await fetchVenueUses(from, to);
+    setStatus(`Procesando ${uses.length} bloques…`, true);
+
+    const fromDate = parseDate(from);
+    const toDate   = parseDate(to);
+
+    // Group by venue, filter to active venues only
+    venueData = {};
+    activeVenues.forEach(v => { venueData[v] = { bookings:[], windows:[] }; });
+
+    uses.forEach(u => {
+      if(!activeVenues.includes(u.venue_name)) return;
+      venueData[u.venue_name].bookings.push({
+        start: parseDate(u.start_date),
+        end:   parseDate(u.end_date),
+        name:  u.program_name
+      });
+    });
+
+    // Calculate windows per venue
+    activeVenues.forEach(v => {
+      const gaps = findGaps(venueData[v].bookings, fromDate, toDate);
+      const wins = [];
+      for(const n of activeNights) for(const gap of gaps) wins.push(...windowsInGap(gap, n));
+      venueData[v].windows = wins;
+    });
+
+    setStatus('', false);
+
+    // Build venue tabs
+    buildVenueTabs(activeVenues, activeNights, minN);
+
+    // Show first venue
+    activeVenueTab = activeVenues[0];
+    renderVenue(activeVenueTab, activeNights, minN);
+
+    // Occupied blocks
+    renderOccupied(uses, activeVenues, fromDate, toDate);
+    document.getElementById('occupiedSection').classList.add('visible');
+
+  } catch(e) { setStatus('',false); showError('Error: '+e.message); }
+  btn.disabled=false;
+}
+
+function buildVenueTabs(venues, activeNights, minN) {
+  const tabs = document.getElementById('venueTabs');
+  tabs.innerHTML='';
+  venues.forEach(v => {
+    const count = venueData[v].windows.length;
+    const tab = document.createElement('button');
+    tab.className='venue-tab'; tab.dataset.venue=v;
+    tab.innerHTML=`${v}<span class="tab-count">${count}</span>`;
+    tab.addEventListener('click',()=>{
+      document.querySelectorAll('.venue-tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      activeVenueTab=v;
+      renderVenue(v, activeNights, minN);
+    });
+    tabs.appendChild(tab);
+  });
+  tabs.classList.add('visible');
+  // Activate first tab
+  tabs.querySelector('.venue-tab').classList.add('active');
+}
+
+function renderVenue(venueName, activeNights, minN) {
+  const windows = venueData[venueName].windows;
+
+  // Summary
+  const strip=document.getElementById('summaryStrip'); strip.innerHTML='';
+  const counts={}; activeNights.forEach(n=>counts[n]=0);
+  windows.forEach(w=>{ if(counts[w.nights]!==undefined) counts[w.nights]++; });
+  Object.entries(counts).forEach(([n,c])=>{
+    const chip=document.createElement('div'); chip.className='summary-chip';
+    chip.innerHTML=`<span class="chip-count">${c}</span><span class="chip-label">${n} noches</span>`;
+    strip.appendChild(chip);
+  });
+  strip.classList.add('visible');
+
+  // Render months
+  const area=document.getElementById('resultsArea'); area.innerHTML='';
+  document.getElementById('emptyState').classList.remove('visible');
+
+  if(windows.length===0){
+    document.getElementById('emptyState').classList.add('visible');
+    return;
+  }
+
+  const byMonth=groupByMonth(windows);
+  byMonth.forEach((md,mi)=>{
+    const sec=document.createElement('div'); sec.className='month-section'; sec.style.animationDelay=`${mi*35}ms`;
+    sec.innerHTML=`<div class="month-header"><span class="month-name">${MONTHS[md.month]} ${md.year}</span><span class="month-count">${md.windows.length} ventana${md.windows.length!==1?'s':''}</span></div>`;
+    const byN={};
+    md.windows.forEach(w=>{ if(!byN[w.nights]) byN[w.nights]=[]; byN[w.nights].push(w); });
+    Object.entries(byN).sort((a,b)=>+a[0]-+b[0]).forEach(([n,wins])=>{
+      const ng=document.createElement('div'); ng.className='night-group';
+      ng.innerHTML=`<div class="night-group-header">${n} noches · ${wins.length} opción${wins.length!==1?'es':''}</div>`;
+      const list=document.createElement('div'); list.className='windows-list';
+      wins.forEach(w=>{
+        const chip=document.createElement('div'); chip.className=`window-chip wc-${Math.min(parseInt(n),7)}`;
+        chip.title='Clic para copiar';
+        chip.innerHTML=`<span class="window-dates">${fmtShort(w.start)} — ${fmtShort(w.end)}</span><span class="window-dow">${DAYS[w.start.getDay()]} → ${DAYS[w.end.getDay()]}</span>`;
+        chip.addEventListener('click',()=>{
+          const txt=`${venueName}  |  Check-in: ${fmtShort(w.start)} ${w.start.getFullYear()}  |  Check-out: ${fmtShort(w.end)} ${w.end.getFullYear()}  |  ${w.nights} noches`;
+          navigator.clipboard.writeText(txt).then(showCopied);
+        });
+        list.appendChild(chip);
+      });
+      ng.appendChild(list); sec.appendChild(ng);
+    });
+    area.appendChild(sec);
+  });
+}
+
+function renderOccupied(uses, activeVenues, fromDate, toDate) {
+  const content=document.getElementById('occupiedContent'); content.innerHTML='';
+  const filtered=uses
+    .filter(u=>activeVenues.includes(u.venue_name))
+    .sort((a,b)=>a.start_date.localeCompare(b.start_date));
+  filtered.forEach(u=>{
+    const row=document.createElement('div'); row.className='occ-row';
+    const s=parseDate(u.start_date), e=parseDate(u.end_date);
+    const nights=diffDays(s,e);
+    row.innerHTML=`<span class="occ-venue">${u.venue_name}</span><span class="occ-name">${u.program_name||'—'}</span><span class="occ-range">${fmtShort(s)} → ${fmtShort(e)} · ${nights}n</span>`;
+    content.appendChild(row);
+  });
+  if(filtered.length===0){
+    content.innerHTML='<div class="occ-row"><span style="color:var(--mist)">Sin bloques en este período</span></div>';
+  }
+}
+
+function toggleSection(id) {
+  const toggle=document.getElementById(id+'Toggle');
+  const content=document.getElementById(id+'Content');
+  toggle.classList.toggle('open');
+  content.classList.toggle('open');
+}
+</script>
+</body>
+</html>
